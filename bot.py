@@ -10,28 +10,30 @@ from aiogram.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
 # --- НАСТРОЙКИ ЛОГОВ ---
 logging.basicConfig(level=logging.INFO)
 
-# --- ПРИТВОРЯЕМСЯ САЙТОМ ДЛЯ RENDER ---
+# --- ВЕБ-СЕРВЕР ДЛЯ RENDER (ЧТОБЫ НЕ ВЫКЛЮЧАЛСЯ) ---
 app = Flask('')
 
 @app.route('/')
 def home():
-    return "I'm alive! FoxRush is running."
+    return "FoxRush is running 24/7!"
 
 def run_flask():
-    # Render передает номер порта через переменную окружения PORT
+    # Берем порт из настроек сервера или используем 10000 по умолчанию
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
 
 # --- НАСТРОЙКИ БОТА ---
-API_TOKEN = '8675521925:AAGIYRx3848sbH9nz3P_OnJoEjV9quZcrWI'
-WEB_APP_URL = 'https://foxrush-2777e.web.app'
+# Замени на свои данные, если они еще не вписаны
+API_TOKEN = 'ТВОЙ_ТОКЕН_ИЗ_BOTFATHER'
+WEB_APP_URL = 'https://foxrush-2777e.web.app' 
 
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher()
 
-# Обработка команды /start
+# --- ОБРАБОТКА КОМАНДЫ /START ---
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
+    # Создаем кнопку для запуска игры
     markup = InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(
@@ -41,22 +43,23 @@ async def cmd_start(message: types.Message):
         ]
     ])
     
+    # Твой оригинальный текст приветствия
     await message.answer(
-        f"Привет, {message.from_user.first_name}! 🦊\n\n"
-        "Твой бот запущен на сервере 24/7. Нажимай кнопку и копи монеты!",
+        f"🦊 Добро пожаловать в FoxRush, {message.from_user.first_name}!\n\n"
+        "💨 Твоя скорость — твой капитал.\n"
+        "Нажимай на кнопку ниже и начинай забег! 🚀",
         reply_markup=markup
     )
 
-# Основная функция запуска
+# --- ЗАПУСК ---
 async def main():
-    # 1. Запускаем веб-сервер в отдельном потоке
-    # Это нужно, чтобы Render видел открытый порт
+    # Запускаем фоновый поток для проверки порта Render
     threading.Thread(target=run_flask, daemon=True).start()
     
-    print("--- ВЕБ-СЕРВЕР ЗАПУЩЕН ---")
-    print("--- БОТ НАЧИНАЕТ ОПРОС ---")
+    print("--- СЕРВЕР ПРОВЕРКИ ПОРТА ЗАПУЩЕН ---")
+    print("--- БОТ FOX RUSH В ЭФИРЕ ---")
     
-    # 2. Запускаем самого бота
+    # Запуск бота в режиме бесконечного опроса
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
