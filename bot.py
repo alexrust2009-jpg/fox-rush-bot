@@ -10,7 +10,7 @@ from aiogram.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
 # --- НАСТРОЙКИ ЛОГОВ ---
 logging.basicConfig(level=logging.INFO)
 
-# --- ВЕБ-СЕРВЕР ДЛЯ RENDER (ЧТОБЫ НЕ ВЫКЛЮЧАЛСЯ) ---
+# --- ПРИТВОРЯЕМСЯ САЙТОМ ДЛЯ RENDER ---
 app = Flask('')
 
 @app.route('/')
@@ -18,13 +18,14 @@ def home():
     return "FoxRush is running 24/7!"
 
 def run_flask():
-    # Берем порт из настроек сервера или используем 10000 по умолчанию
+    # Render передает номер порта через переменную окружения PORT
     port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=port)
+    # use_reloader=False критически важен для стабильности на Render
+    app.run(host='0.0.0.0', port=port, use_reloader=False)
 
 # --- НАСТРОЙКИ БОТА ---
-# Замени на свои данные, если они еще не вписаны
-API_TOKEN = 'ТВОЙ_ТОКЕН_ИЗ_BOTFATHER'
+# Вставь сюда свой токен и ссылку
+API_TOKEN = '8675521925:AAGIYRx3848sbH9nz3P_OnJoEjV9quZcrWI'
 WEB_APP_URL = 'https://foxrush-2777e.web.app' 
 
 bot = Bot(token=API_TOKEN)
@@ -33,7 +34,6 @@ dp = Dispatcher()
 # --- ОБРАБОТКА КОМАНДЫ /START ---
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
-    # Создаем кнопку для запуска игры
     markup = InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(
@@ -43,7 +43,6 @@ async def cmd_start(message: types.Message):
         ]
     ])
     
-    # Твой оригинальный текст приветствия
     await message.answer(
         f"🦊 Добро пожаловать в FoxRush, {message.from_user.first_name}!\n\n"
         "💨 Твоя скорость — твой капитал.\n"
@@ -51,19 +50,19 @@ async def cmd_start(message: types.Message):
         reply_markup=markup
     )
 
-# --- ЗАПУСК ---
+# --- ГЛАВНАЯ ФУНКЦИЯ ---
 async def main():
-    # Запускаем фоновый поток для проверки порта Render
+    # Запускаем Flask в фоновом потоке
     threading.Thread(target=run_flask, daemon=True).start()
     
-    print("--- СЕРВЕР ПРОВЕРКИ ПОРТА ЗАПУЩЕН ---")
-    print("--- БОТ FOX RUSH В ЭФИРЕ ---")
+    logging.info("--- ВЕБ-СЕРВЕР ЗАПУЩЕН ---")
+    logging.info("--- БОТ НАЧИНАЕТ ОПРОС ---")
     
-    # Запуск бота в режиме бесконечного опроса
+    # Запуск бота
     await dp.start_polling(bot)
 
 if __name__ == '__main__':
     try:
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
-        print("Бот остановлен")
+        logging.info("Бот остановлен")
