@@ -1,50 +1,55 @@
+import asyncio
 import logging
 from aiogram import Bot, Dispatcher, types
-from aiogram.utils import executor
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+from aiogram.filters import Command
+from aiogram.types import WebAppInfo, InlineKeyboardMarkup, InlineKeyboardButton
 
 # --- НАСТРОЙКИ ---
+# Вставь сюда свой токен, который дал @BotFather
 API_TOKEN = '8675521925:AAGIYRx3848sbH9nz3P_OnJoEjV9quZcrWI'
-# Твоя ссылка от Firebase (например, https://foxrush-2777e.web.app)
-WEB_APP_URL = ' https://foxrush-2777e.web.app' 
 
-# Логирование (помогает видеть ошибки в консоли)
+# Вставь сюда ссылку, которую ты получил после 'firebase deploy'
+WEB_APP_URL = 'https://foxrush-2777e.web.app' 
+
+# Включаем логирование, чтобы видеть ошибки в терминале
 logging.basicConfig(level=logging.INFO)
 
 # Инициализация бота и диспетчера
 bot = Bot(token=API_TOKEN)
-dp = Dispatcher(bot)
+dp = Dispatcher()
 
-@dp.message_handler(commands=['start'])
-async def send_welcome(message: types.Message):
-    # Получаем ID пригласившего из команды /start (если он есть)
-    # Пример: /start 12345678 -> start_param будет "12345678"
-    start_param = message.get_args()
+# Обработка команды /start
+@dp.message(Command("start"))
+async def cmd_start(message: types.Message):
+    # Создаем кнопку, которая открывает Web App (твою игру)
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="🦊 Запустить FoxRush!", 
+                web_app=WebAppInfo(url=WEB_APP_URL)
+            )
+        ]
+    ])
     
-    # Формируем URL для Web App с параметром реферала
-    # Telegram передаст этот параметр в твой JS код (tg.initDataUnsafe.start_param)
-    final_url = WEB_APP_URL
-    if start_param:
-        final_url += f"?startapp={start_param}"
-
-    # Создаем кнопку, которая открывает Mini App
-    markup = InlineKeyboardMarkup()
-    btn = InlineKeyboardButton(
-        text="🦊 Запустить Fox Rush", 
-        web_app=WebAppInfo(url=final_url)
-    )
-    markup.add(btn)
-
-    # Приветственный текст
-    welcome_text = (
+    # Отправляем приветственное сообщение с кнопкой
+    await message.answer(
         f"Привет, {message.from_user.first_name}! 🦊\n\n"
-        "Добро пожаловать в Fox Rush!\n"
-        "Это игра, где твой лис добывает монеты, пока ты отдыхаешь.\n\n"
-        "Нажимай на кнопку ниже, чтобы начать!"
+        "Добро пожаловать в FoxRush! Твоя скорость — твой капитал.\n"
+        "Нажимай на кнопку ниже, чтобы начать собирать монеты!",
+        reply_markup=markup
     )
 
-    await message.answer(welcome_text, reply_markup=markup)
+# Основная функция запуска
+async def main():
+    print("--- БОТ ЗАПУЩЕН ---")
+    print(f"Ссылка на игру: {WEB_APP_URL}")
+    print("Нажми Ctrl+C в терминале, чтобы остановить бота.")
+    
+    # Запуск процесса опроса новых сообщений
+    await dp.start_polling(bot)
 
 if __name__ == '__main__':
-    # Запуск бота
-    executor.start_polling(dp, skip_updates=True)
+    try:
+        asyncio.run(main())
+    except (KeyboardInterrupt, SystemExit):
+        print("Бот остановлен")
