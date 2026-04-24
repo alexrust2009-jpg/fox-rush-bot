@@ -25,7 +25,7 @@ def run_flask():
 
 # --- НАСТРОЙКИ БОТА ---
 # Вставь сюда свой токен и ссылку
-API_TOKEN = '8675521925:AAGIYRx3848sbH9nz3P_OnJoEjV9quZcrWI'
+API_TOKEN = '8675521925:AAEX-QViQGct02fz0HgQ-kjUM5EKyoMelhI'
 WEB_APP_URL = 'https://foxrush-2777e.web.app' 
 
 bot = Bot(token=API_TOKEN)
